@@ -1,0 +1,185 @@
+% Syntax changed in Prova Reloaded
+
+:- solve(checkABCDE()).
+airwayIsFree(yes).
+breathes(yes).
+cyanosis(no).
+chestExpansion(normal).
+respiratoryRythm(normal).
+chestExpansionSymmetric(yes).
+pulseCentral(yes).
+pulsePeripheral(yes).
+pupilsIsocore(yes).
+strokeSigns(no).
+hasBleeding(no).
+hasBrokenBone(no).
+hasAllergies(no).
+hasPain(no).
+not(A) :-
+        %println(["deriving the NOT of", A]),
+        derive(A),
+        !,
+        fail().
+not(_).
+
+
+checkABCDE() :-
+       	println(["Evaluating ABCDE Approach"]),
+		rcvMult(XID,Protocol,From,inform,{airwayFree->AirwayFree,breathes->Breathes,cyanosis->Cyanosis,respiratoryRate->RespiratoryRate,chestExpansion->ChestExpansion,respiratoryRythm->RespiratoryRythm,chestExpansionSymmetric->ChestExpansionSymmetric,oxygenSaturation->OxygenSaturation,pulseRate->PulseRate,systolicBloodPressure->SystolicBloodPressure,pulseCentral->PulseCentral,pulsePeripheral->PulsePeripheral,glucoseLevel->GlucoseLevel,gcsnumber->GCSnumber,pupilsIsocore->PupilsIsocore,strokeSigns->StrokeSigns,hasBleeding->HasBleeding,hasBrokenBone->HasBrokenBone,hasAllergies->HasAllergies,hasPain->HasPain}),
+		println(["Received ",{airwayFree->AirwayFree,breathes->Breathes,cyanosis->Cyanosis,respiratoryRate->RespiratoryRate,chestExpansion->ChestExpansion,respiratoryRythm->RespiratoryRythm,chestExpansionSymmetric->ChestExpansionSymmetric,oxygenSaturation->OxygenSaturation,pulseRate->PulseRate,systolicBloodPressure->SystolicBloodPressure,pulseCentral->PulseCentral,pulsePeripheral->PulsePeripheral,glucoseLevel->GlucoseLevel,gcsnumber->GCSnumber,pupilsIsocore->PupilsIsocore,strokeSigns->StrokeSigns,hasBleeding->HasBleeding,hasBrokenBone->HasBrokenBone,hasAllergies->HasAllergies,hasPain->HasPain}]),
+       		checkAirway(AirwayFree,Breathes,Cyanosis,RespiratoryRate,ChestExpansion,RespiratoryRythm,ChestExpansionSymmetric,OxygenSaturation,PulseRate,SystolicBloodPressure,PulseCentral,PulsePeripheral,GlucoseLevel,GCSnumber,PupilsIsocore,StrokeSigns,HasBleeding,HasBrokenBone,HasAllergies,HasPain),
+		println(["sending the result back..."]),
+		sendMsg(XID,osgi,"FHIR",inform,{"ABCDECheck"->completed}).
+
+	
+checkAirway(AW,BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	println(["checkAirwayFree ",AW]),
+	airwayIsFree(AW),
+	checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain).
+checkAirway(AW,BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	not(airwayIsFree(AW)),
+	println(["checkAirwayFree AW!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"AirwayNotFree"->AW}).		
+	
+checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	println(["BreathesYesNo: ", BR]),
+	println(["CyanosisYesNo: ", CY]),
+	println(["RespRate ",RespRate]),
+	println(["ChestExp ", ChestExp]),
+	println(["RespRhytm ", RespRhytm]),
+	println(["ChestSym ", ChestSym]),
+	println(["OxySat ",OxySat]),
+	println(["PulseRat ",PulseRat]),
+	println(["SysBP ",SysBP]),
+	println(["RespRate ",RespRate]),
+	breathes(BR),
+	cyanosis(CY),
+	chestExpansion(ChestExp),
+	respiratoryRythm(RespRhytm),
+	chestExpansionSymmetric(ChestSym),
+	RespRate>8,
+	RespRate<20,
+	OxySat>95,
+	println(["CheckingBrathing ok"]),
+	checkCirculation(PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain).
+checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	not(breathes(BR)),
+	println(["CheckingBrathing BR!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"NotBreathing"->BR}).	
+checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	not(cyanosis(CY)),
+	println(["CheckingBrathing CY!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"HasCyanosis"->CY}).	
+checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	not(chestExpansion(ChestExp)),
+	println(["CheckingBrathing ChestExp!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"ChestDoesNotExpand"->ChestExp}).	
+checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	not(respiratoryRythm(RespRhytm)),
+	println(["CheckingBrathing RespRhytm!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"RespiratoryRythmNotNormal"->RespRhytm}).	
+checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	not(chestExpansionSymmetric(ChestSym)),
+	println(["CheckingBrathing ChestSym!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"ChestDoesNotExpandSymmetrically"->ChestSym}).
+checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	RespRate<8,
+	println(["CheckingBrathing RespRate!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"RespiratoryRateTooLow"->RespRate}).
+checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	RespRate>20,
+	println(["CheckingBrathing RespRate!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"RespiratoryRateTooHigh"->RespRate}).
+checkBreathing(BR,CY,RespRate,ChestExp,RespRhytm,ChestSym,OxySat,PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	OxySat<95,
+	println(["CheckingBrathing OxySat!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"OxygenSaturationTooLow"->OxySat}).
+	
+	
+checkCirculation(PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	PulseRat<130,
+	PulseRat>50,
+	SysBP<160,
+	SysBP>80,
+	pulseCentral(PulseCent),
+	pulsePeripheral(PulsePeri),
+	println(["CheckingCirculation ok"]),
+	checkDisability(Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain).
+checkCirculation(PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	PulseRat>130,
+	println(["CheckingCirculation PulseRate!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"PulseRateToHigh"->PulseRat}).
+checkCirculation(PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	PulseRat<50,
+	println(["CheckingCirculation PulseRate!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"PulseRateToLow"->PulseRat}).
+checkCirculation(PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	SysBP>160,
+	println(["CheckingCirculation SysBP!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"SysBPtoHigh"->SysBP}).
+checkCirculation(PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	SysBP<80,
+	println(["CheckingCirculation SysBP!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"SysBPtoLow"->SysBP}).
+checkCirculation(PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	not(pulseCentral(PulseCent)),
+	println(["CheckingCirculation PulseCent!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"NoPulseCent"->PulseCent}).
+checkCirculation(PulseRat,SysBP,PulseCent,PulsePeri,Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	not(pulsePeripheral(PulsePeri)),
+	println(["CheckingCirculation PulsePeri!"]),
+	sendMsg("someXID",osgi,"FHIR",inform,{"NoPulsePeri"->PulsePeri}).
+	
+checkDisability(Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	Gluc>50,
+	Gluc<500,
+	GCS>12,
+	GCS<=15,
+	pupilsIsocore(PuplisIso),
+	strokeSigns(StrokeSig),
+	println(["CheckingDisability ok"]),
+	checkExposure(Bleeding,BrokenBone,Allergies,Pain).
+checkDisability(Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	Gluc<50,
+	println(["CheckingDisability Glucose!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"GlucoseToLow"->Gluc}).
+checkDisability(Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	Gluc>500,
+	println(["CheckingDisability Glucose!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"GlucoseToHigh"->Gluc}).
+checkDisability(Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	GCS<12,
+	println(["CheckingDisability GCS!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"GCStoLow"->GCS}).
+checkDisability(Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	GCS>15,
+	println(["CheckingDisability GCS!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"GCSCanNotBe"->GCS}).
+checkDisability(Gluc,GCS,PuplisIso,StrokeSig,Bleeding,BrokenBone,Allergies,Pain) :-
+	not(pupilsIsocore(PuplisIso)),
+	println(["CheckingDisability pupilsIsocore!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"pupilsIsocore"->PuplisIso}).
+	
+	
+checkExposure(Bleeding,BrokenBone,Allergies,Pain) :-
+	hasBleeding(Bleeding),
+	hasBrokenBone(BrokenBone),
+	hasAllergies(Allergies),
+	hasPain(Pain),
+	println(["CheckingExposure ok"]).
+checkExposure(Bleeding,BrokenBone,Allergies,Pain) :-
+	not(hasBleeding(Bleeding)),
+	println(["CheckingExposure hasBleeding!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"Bleeding"->Bleeding}).
+checkExposure(Bleeding,BrokenBone,Allergies,Pain) :-
+	not(hasBrokenBone(BrokenBone)),
+	println(["CheckingExposure hasBrokenBone!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"hasBrokenBone"->BrokenBone}).
+checkExposure(Bleeding,BrokenBone,Allergies,Pain) :-
+	not(hasAllergies(Allergies)),
+	println(["CheckingExposure hasAllergies!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"hasAllergies"->Allergies}).
+checkExposure(Bleeding,BrokenBone,Allergies,Pain) :-
+	not(hasPain(Pain)),
+	println(["CheckingExposure hasPain!"]),
+	sendMsg(XID,osgi,"FHIR",inform,{"hasPain"->Pain}).
